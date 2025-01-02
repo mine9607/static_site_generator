@@ -148,21 +148,20 @@ def split_nodes_link(old_nodes):
 
 def text_to_text_nodes(text):
     nodes = [TextNode(text=text, text_type=TextType.TEXT)]
-    print(f"INITIAL NODES: {[n.text for n in nodes]}")
 
     nodes = split_nodes_delimiter(nodes, "**", TextType.BOLD)
-    print(f"AFTER BOLD: {[n.text for n in nodes]}")
     
     nodes = split_nodes_delimiter(nodes, "*", TextType.ITALIC)
-    print(f"AFTER ITALIC: {[n.text for n in nodes]}")
 
     nodes = split_nodes_delimiter(nodes, "`", TextType.CODE)
-    print(f"AFTER CODE: {[n.text for n in nodes]}")
 
     nodes = split_nodes_image(nodes)
-    print(f"AFTER IMAGES: {[n.text for n in nodes]}")
     
     nodes = split_nodes_link(nodes)
-    print(f"AFTER LINKS: {[n.text for n in nodes]}")
 
     return nodes
+
+def markdown_to_blocks(markdown):
+    blocks = [block.strip() for block in markdown.split("\n\n") if block.strip()]
+    print(blocks)
+    return blocks
