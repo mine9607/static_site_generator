@@ -73,6 +73,9 @@ def text_node_to_html_node(text_node):
 
 def split_nodes_delimiter(old_nodes, delimiter, text_type):
     new_nodes = []
+    if len(old_nodes) == 0:
+        new_nodes.append(TextNode("", TextType.TEXT))
+        return new_nodes
     for old_node in old_nodes:
         if old_node.text_type != TextType.TEXT:
             new_nodes.append(old_node)
@@ -82,8 +85,8 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
         if len(sections) % 2 == 0:
             raise ValueError("Invalid markdown, formatted section not closed")
         for i in range(len(sections)):
-            if sections[i] == "":
-                continue
+            # if sections[i] == "":
+            #     continue
             if i % 2 == 0:
                 split_nodes.append(TextNode(sections[i], TextType.TEXT))
             else:
@@ -93,78 +96,73 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
 
 def split_nodes_image(old_nodes):
     new_nodes = []
-
-    for node in old_nodes:
-        # check for empty values and continue if found
-        # they should not be appended to the final list
-        if node.text == "":
+    for old_node in old_nodes:
+        if old_node.text_type != TextType.TEXT:
+            new_nodes.append(old_node)
             continue
-
-        # create a delimiter for images
-        images = extract_markdown_images(node.text)
-
-        if len(images) ==0:
-            new_nodes.append(node)
+        original_text = old_node.text
+        images = extract_markdown_images(original_text)
+        if len(images) == 0:
+            new_nodes.append(old_node)
             continue
-
-        for text, url in images:
-            delimiter = f"![{text}]({url})"
-
-            # Use the split nodes function to create a list of text nodes
-            split_node = []
-            parts = node.text.split(delimiter, 1)
-
-            if len(parts) == 2:
-                if parts[0] != "":
-                    before = TextNode(parts[0], text_type=TextType.TEXT)
-                    split_node.append(before)
-                
-                image = TextNode(text=text, text_type=TextType.IMAGE, url=url)
-                split_node.append(image)
-
-                if parts[1] != "":
-                    after = TextNode(parts[1], text_type=TextType.TEXT)
-                    split_node.append(after)
-
-            new_nodes.extend(split_node)      
-
+        for image in images:
+            sections = original_text.split(f"![{image[0]}]({image[1]})", 1)
+            if len(sections) != 2:
+                raise ValueError("Invalid markdown, image section not closed")
+            if sections[0] != "":
+                new_nodes.append(TextNode(sections[0], TextType.TEXT))
+            new_nodes.append(
+                TextNode(
+                    image[0],
+                    TextType.IMAGE,
+                    image[1],
+                )
+            )
+            original_text = sections[1]
+        if original_text != "":
+            new_nodes.append(TextNode(original_text, TextType.TEXT))
     return new_nodes
 
 def split_nodes_link(old_nodes):
     new_nodes = []
-
-    for node in old_nodes:
-        # check for empty values and continue if found
-        # they should not be appended to the final list
-        if node.text == "":
+    for old_node in old_nodes:
+        if old_node.text_type != TextType.TEXT:
+            new_nodes.append(old_node)
             continue
-
-        # create a delimiter for images
-        links = extract_markdown_links(node.text)
-
-        if len(links) ==0:
-            new_nodes.append(node)
+        original_text = old_node.text
+        links = extract_markdown_links(original_text)
+        if len(links) == 0:
+            new_nodes.append(old_node)
             continue
-
-        for text, url in links:
-            delimiter = f"[{text}]({url})"
-
-            # Use the split nodes function to create a list of text nodes
-            split_node = []
-            parts = node.text.split(delimiter, 1)
-
-            if len(parts) == 2:
-                if parts[0] != "":
-                    before = TextNode(parts[0], text_type=TextType.TEXT)
-                    split_node.append(before)
-                
-                image = TextNode(text=text, text_type=TextType.LINK, url=url)
-                split_node.append(image)
-
-                if parts[1] != "":
-                    after = TextNode(parts[1], text_type=TextType.TEXT)
-                    split_node.append(after)
-
-            new_nodes.extend(split_node) 
-
+        for link in links:
+            sections = original_text.split(f"[{link[0]}]({link[1]})", 1)
+            if len(sections) != 2:
+                raise ValueError("Invalid markdown, link section not closed")
+            if sections[0] != "":
+                new_nodes.append(TextNode(sections[0], TextType.TEXT))
+            new_nodes.append(TextNode(link[0], TextType.LINK, link[1]))
+            original_text = sections[1]
+        if original_text != "":
+            new_nodes.append(TextNode(original_text, TextType.TEXT))
     return new_nodes
+
+def text_to_text_nodes(text):
+    nodes = [TextNode(text=text, text_type=TextType.TEXT)]
+    print(f"INITIAL NODES: {[n.text for n in nodes]}")
+
+    nodes = split_nodes_delimiter(nodes, "**", TextType.BOLD)
+    print(f"AFTER BOLD: {[n.text for n in nodes]}")
+    
+    nodes = split_nodes_delimiter(nodes, "*", TextType.ITALIC)
+    print(f"AFTER ITALIC: {[n.text for n in nodes]}")
+
+    nodes = split_nodes_delimiter(nodes, "`", TextType.CODE)
+    print(f"AFTER CODE: {[n.text for n in nodes]}")
+
+    nodes = split_nodes_image(nodes)
+    print(f"AFTER IMAGES: {[n.text for n in nodes]}")
+    
+    nodes = split_nodes_link(nodes)
+    print(f"AFTER LINKS: {[n.text for n in nodes]}")
+
+    return nodes
