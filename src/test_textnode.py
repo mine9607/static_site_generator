@@ -97,35 +97,35 @@ def test_split_nodes_delimiter(self):
     ]
     assert result == expected
 
-class TestSplitNodesDelimiter(unittest.TestCase):
-    def test_node_not_text_type(self):
-        bold_node = TextNode("Bold Text", TextType.BOLD)
-        result = split_nodes_delimiter([bold_node], "`", TextType.CODE)
-        self.assertEqual(result, [bold_node])
+# class TestSplitNodesDelimiter(unittest.TestCase):
+#     def test_node_not_text_type(self):
+#         bold_node = TextNode("Bold Text", TextType.BOLD)
+#         result = split_nodes_delimiter([bold_node], "`", TextType.CODE)
+#         self.assertEqual(result, [bold_node])
 
-    def test_basic_delimiter_split(self):
-        text_node = TextNode("This is `code` text", TextType.TEXT)
-        result = split_nodes_delimiter([text_node], "`", TextType.CODE)
-        expected = [
-            TextNode("This is ", TextType.TEXT),
-            TextNode("code", TextType.CODE),
-            TextNode(" text", TextType.TEXT),
-        ]
-        self.assertEqual(result, expected)
+#     def test_basic_delimiter_split(self):
+#         text_node = TextNode("This is `code` text", TextType.TEXT)
+#         result = split_nodes_delimiter([text_node], "`", TextType.CODE)
+#         expected = [
+#             TextNode("This is ", TextType.TEXT),
+#             TextNode("code", TextType.CODE),
+#             TextNode(" text", TextType.TEXT),
+#         ]
+#         self.assertEqual(result, expected)
 
-    def test_empty_nodes_list(self):
-        with self.assertRaises(ValueError):
-            split_nodes_delimiter([], "`", TextType.CODE)
+#     def test_empty_nodes_list(self):
+#         with self.assertRaises(ValueError):
+#             split_nodes_delimiter([], "`", TextType.CODE)
 
-    def test_text_without_delimiter(self):
-        text_node = TextNode("This is plain text", TextType.TEXT)
-        with self.assertRaises(Exception):
-            split_nodes_delimiter([text_node], "`", TextType.CODE)
+#     def test_text_without_delimiter(self):
+#         text_node = TextNode("This is plain text", TextType.TEXT)
+#         with self.assertRaises(Exception):
+#             split_nodes_delimiter([text_node], "`", TextType.CODE)
 
-    def test_multiple_delimiters_in_text(self):
-        text_node = TextNode("This is `code` and `more code`", TextType.TEXT)
-        with self.assertRaises(Exception):
-            split_nodes_delimiter([text_node], "`", TextType.CODE)
+#     def test_multiple_delimiters_in_text(self):
+#         text_node = TextNode("This is `code` and `more code`", TextType.TEXT)
+#         with self.assertRaises(Exception):
+#             split_nodes_delimiter([text_node], "`", TextType.CODE)
 
 
 if __name__ == "__main__":

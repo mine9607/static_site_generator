@@ -70,48 +70,22 @@ def text_node_to_html_node(text_node):
         raise ValueError("Unsupported text type: {}".format(text_node.text_type))
 
 
-def split_nodes_delimiter(old_nodes:list, delimiter, text_type:TextType):
-    # Code should accept a list of nodes, a delimiter and a text_type and for each TextNode:
-        # split the node on the delimiter:
-            # text before the delimiter should be of type TextNode.TEXT
-            # text between the delimiter should be of type defined by delimiter (.BOLD, .ITALIC, .CODE)
-            # text after the delimiter should be of type TextNode.TEXT
-        
-        # returns a list of lists if len(old_nodes) >1 or a list if len(old_nodes) == 1
-
-    ''' TIPS 
-        1 - if an "old_node" is not a TextType.TEXT type then just add it to the list of new nodes "as-is"
-        2 - if a matching closing delimiter is not found then 
-    '''
-
-    # create a new list to append to:
+def split_nodes_delimiter(old_nodes, delimiter, text_type):
     new_nodes = []
-
-
-    #check if node list is empty and if so raise an exception
-    if len(old_nodes)==0:
-        raise ValueError("Nodes parameter much contain a list with at least one node")
-
-
-    for node in old_nodes:
-        # if nodes text_type isn't TextType.TEXT then append to new_nodes
-        if node.text_type != TextType.TEXT:
-            new_nodes.append(node)
-
-        else:
-            # check if trailing delimiter found len of split node would be <3
-            parts = node.text.split(delimiter)
-            if len(parts) < 3 :
-                raise Exception("Missing matching delimiters please check TextNode.text")
-            if len(parts) > 3 :
-                raise Exception("TextNode.text contains multiple delimiters which is not allowed!")
+    for old_node in old_nodes:
+        if old_node.text_type != TextType.TEXT:
+            new_nodes.append(old_node)
+            continue
+        split_nodes = []
+        sections = old_node.text.split(delimiter)
+        if len(sections) % 2 == 0:
+            raise ValueError("Invalid markdown, formatted section not closed")
+        for i in range(len(sections)):
+            if sections[i] == "":
+                continue
+            if i % 2 == 0:
+                split_nodes.append(TextNode(sections[i], TextType.TEXT))
             else:
-                # Assign the TextType.Text to the leading and trailing string splits
-                before = TextNode(parts[0], TextType.TEXT)
-                between = TextNode(parts[1], text_type)
-                end = TextNode(parts[2], TextType.TEXT)
-
-                ## Note: we may need to create new TextNodes from the splits since the split is likely just createing the strings
-                new_nodes.extend([before, between, end])
-
+                split_nodes.append(TextNode(sections[i], text_type))
+        new_nodes.extend(split_nodes)
     return new_nodes
