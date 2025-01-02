@@ -1,5 +1,6 @@
 from enum import Enum
 from htmlnode import LeafNode
+from regex import extract_markdown_images, extract_markdown_links
 
 class TextType(Enum):
     TEXT = "normal"
@@ -88,4 +89,82 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
             else:
                 split_nodes.append(TextNode(sections[i], text_type))
         new_nodes.extend(split_nodes)
+    return new_nodes
+
+def split_nodes_image(old_nodes):
+    new_nodes = []
+
+    for node in old_nodes:
+        # check for empty values and continue if found
+        # they should not be appended to the final list
+        if node.text == "":
+            continue
+
+        # create a delimiter for images
+        images = extract_markdown_images(node.text)
+
+        if len(images) ==0:
+            new_nodes.append(node)
+            continue
+
+        for text, url in images:
+            delimiter = f"![{text}]({url})"
+
+            # Use the split nodes function to create a list of text nodes
+            split_node = []
+            parts = node.text.split(delimiter, 1)
+
+            if len(parts) == 2:
+                if parts[0] != "":
+                    before = TextNode(parts[0], text_type=TextType.TEXT)
+                    split_node.append(before)
+                
+                image = TextNode(text=text, text_type=TextType.IMAGE, url=url)
+                split_node.append(image)
+
+                if parts[1] != "":
+                    after = TextNode(parts[1], text_type=TextType.TEXT)
+                    split_node.append(after)
+
+            new_nodes.extend(split_node)      
+
+    return new_nodes
+
+def split_nodes_link(old_nodes):
+    new_nodes = []
+
+    for node in old_nodes:
+        # check for empty values and continue if found
+        # they should not be appended to the final list
+        if node.text == "":
+            continue
+
+        # create a delimiter for images
+        links = extract_markdown_links(node.text)
+
+        if len(links) ==0:
+            new_nodes.append(node)
+            continue
+
+        for text, url in links:
+            delimiter = f"[{text}]({url})"
+
+            # Use the split nodes function to create a list of text nodes
+            split_node = []
+            parts = node.text.split(delimiter, 1)
+
+            if len(parts) == 2:
+                if parts[0] != "":
+                    before = TextNode(parts[0], text_type=TextType.TEXT)
+                    split_node.append(before)
+                
+                image = TextNode(text=text, text_type=TextType.LINK, url=url)
+                split_node.append(image)
+
+                if parts[1] != "":
+                    after = TextNode(parts[1], text_type=TextType.TEXT)
+                    split_node.append(after)
+
+            new_nodes.extend(split_node) 
+
     return new_nodes
