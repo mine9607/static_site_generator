@@ -33,27 +33,27 @@ class TextNode:
 def text_node_to_html_node(text_node):
     # Normal Text should return a LeafNode with no tag just raw text value
     if text_node.text_type == TextType.NORMAL_TEXT:
-        return htmlnode.LeafNode(tag ="", props = {}, value = text_node.text) #LeafNodes require tag, value, props
+        return LeafNode(tag ="", props = {}, value = text_node.text) #LeafNodes require tag, value, props
 
     # Bold Text should return a LeafNode with a "b" tag and the text
     if text_node.text_type == TextType.BOLD_TEXT:
-        return htmlnode.LeafNode(tag ="b",  props = {}, value = text_node.text)
+        return LeafNode(tag ="b",  props = {}, value = text_node.text)
 
     # Italic Text should return a LeafNode with an "i" tag and the text
     if text_node.text_type == TextType.ITALIC_TEXT:
-        return htmlnode.LeafNode(tag = "i", props = {}, value = text_node.text)
+        return LeafNode(tag = "i", props = {}, value = text_node.text)
     
     # Code Text should return a LeafNode with a "code" tag and the text
     if text_node.text_type == TextType.CODE_TEXT:
-        return htmlnode.LeafNode(tag = "code", props= {}, value=text_node.text)
+        return LeafNode(tag = "code", props= {}, value=text_node.text)
     
     # Link Text should return a LeafNode with a "a" tag, anchor text and an "href" prop
     if text_node.text_type == TextType.LINK:
-        return htmlnode.LeafNode(tag = "a", props = {"href":f"{text_node.url}"}, value = text_node.text)
+        return LeafNode(tag = "a", props = {"href":f"{text_node.url}"}, value = text_node.text)
 
     # Image Text should return a LeafNode with a "img" tag, empty string value, "src" and "alt" props
     if text_node.text_type == TextType.IMAGE:
-        return htmlnode.LeafNode(tag = "img", props = {"src":f"{text_node.url}", "alt":f"{text_node.text}"}, value="")
+        return LeafNode(tag = "img", props = {"src":f"{text_node.url}", "alt":f"{text_node.text}"}, value="")
     
     else:
         raise ValueError("Unsupported text type: {}".format(text_node.text_type))

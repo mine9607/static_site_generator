@@ -1,6 +1,7 @@
 import unittest
 
-from textnode import TextType, TextNode
+from textnode import TextType, TextNode, text_node_to_html_node
+from htmlnode import LeafNode
 
 class TestTextNode(unittest.TestCase):
     def test_eq(self):
@@ -16,84 +17,70 @@ class TestTextNode(unittest.TestCase):
 
 class TestTextToHTMLFunc(unittest.TestCase):
     def setUp(self):
-        self.TextType = Mock()  # Mock the TextType enumeration or class
-        self.TextType.NORMAL_TEXT = "normal"
-        self.TextType.BOLD_TEXT = "bold"
-        self.TextType.ITALIC_TEXT = "italic"
-        self.TextType.CODE_TEXT = "code"
-        self.TextType.LINK = "link"
-        self.TextType.IMAGE = "image"
+       # Create sample TextNode instances for testing
+        self.normal_text_node = TextNode("Normal Text", TextType.NORMAL_TEXT)
+        self.bold_text_node = TextNode("Bold Text", TextType.BOLD_TEXT)
+        self.italic_text_node = TextNode("Italic Text", TextType.ITALIC_TEXT)
+        self.code_text_node = TextNode("Code Text", TextType.CODE_TEXT)
+        self.link_text_node = TextNode("Link Text", TextType.LINK, url="https://example.com")
+        self.image_text_node = TextNode("Image Alt Text", TextType.IMAGE, url="https://example.com/image.png") 
 
     def test_normal_text(self):
-        text_node = Mock()
-        text_node.text_type = self.TextType.NORMAL_TEXT
-        text_node.text = "Sample text"
+        text_node = TextNode("Sample text", TextType.NORMAL_TEXT)
         result = text_node_to_html_node(text_node)
-        self.assertIsInstance(result, htmlnode.LeafNode)
+        self.assertIsInstance(result, LeafNode)
         self.assertEqual(result.tag, "")
         self.assertEqual(result.value, "Sample text")
         self.assertEqual(result.props, {})
 
     def test_bold_text(self):
-        text_node = Mock()
-        text_node.text_type = self.TextType.BOLD_TEXT
-        text_node.text = "Bold text"
+        text_node = TextNode("Bold text", TextType.BOLD_TEXT)
         result = text_node_to_html_node(text_node)
-        self.assertIsInstance(result, htmlnode.LeafNode)
+        self.assertIsInstance(result, LeafNode)
         self.assertEqual(result.tag, "b")
         self.assertEqual(result.value, "Bold text")
         self.assertEqual(result.props, {})
 
     def test_italic_text(self):
-        text_node = Mock()
-        text_node.text_type = self.TextType.ITALIC_TEXT
-        text_node.text = "Italic text"
+        text_node = TextNode("Italic text", TextType.ITALIC_TEXT)
         result = text_node_to_html_node(text_node)
-        self.assertIsInstance(result, htmlnode.LeafNode)
+        self.assertIsInstance(result, LeafNode)
         self.assertEqual(result.tag, "i")
         self.assertEqual(result.value, "Italic text")
         self.assertEqual(result.props, {})
 
     def test_code_text(self):
-        text_node = Mock()
-        text_node.text_type = self.TextType.CODE_TEXT
-        text_node.text = "Code snippet"
+        text_node = TextNode("Code snippet", TextType.CODE_TEXT)
         result = text_node_to_html_node(text_node)
-        self.assertIsInstance(result, htmlnode.LeafNode)
+        self.assertIsInstance(result, LeafNode)
         self.assertEqual(result.tag, "code")
         self.assertEqual(result.value, "Code snippet")
         self.assertEqual(result.props, {})
 
     def test_link_text(self):
-        text_node = Mock()
-        text_node.text_type = self.TextType.LINK
-        text_node.text = "Link text"
-        text_node.url = "http://example.com"
+        text_node = TextNode("Link text", TextType.LINK, url="http://example.com")
         result = text_node_to_html_node(text_node)
-        self.assertIsInstance(result, htmlnode.LeafNode)
+        self.assertIsInstance(result, LeafNode)
         self.assertEqual(result.tag, "a")
         self.assertEqual(result.value, "Link text")
         self.assertEqual(result.props, {"href": "http://example.com"})
 
     def test_image_text(self):
-        text_node = Mock()
-        text_node.text_type = self.TextType.IMAGE
-        text_node.text = "Image alt text"
-        text_node.url = "http://example.com/image.jpg"
+        text_node = TextNode("Image alt text", TextType.IMAGE, url="http://example.com/image.jpg")
         result = text_node_to_html_node(text_node)
-        self.assertIsInstance(result, htmlnode.LeafNode)
+        self.assertIsInstance(result, LeafNode)
         self.assertEqual(result.tag, "img")
         self.assertEqual(result.value, "")
         self.assertEqual(result.props, {"src": "http://example.com/image.jpg", "alt": "Image alt text"})
 
     def test_unsupported_text_type(self):
-        text_node = Mock()
-        text_node.text_type = "unsupported"
+        text_node = TextNode("Unsupported text", "unsupported")
         with self.assertRaises(ValueError) as context:
             text_node_to_html_node(text_node)
         self.assertEqual(
             str(context.exception), "Unsupported text type: unsupported"
         )
+ 
 
 
 if __name__ == "__main__":
