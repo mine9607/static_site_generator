@@ -1,6 +1,6 @@
 # Build a Static Site Generator
 
-Ensure python is installed:  `which python`
+Ensure python is installed: `which python`
 
 If not install python: `pip install python`
 
@@ -13,7 +13,6 @@ Install dependencies: `pip install`
 Add dependencies to a requirements.txt file: `pip freeze requirements.txt`
 
 Recreate environment on setup: `pip install -r requirements.txt`
-
 
 A ssg takes raw content files (like markdown and images) and turns them into a static website
 
@@ -199,3 +198,52 @@ We need to convert a `TextNode` to an `HTMLNode` or specifically to a `LeafNode`
      - `TextType.CODE` should become a `LeafNode` with a "code" tag and the text
      - `TextType.LINK` should become a `LeafNode` with a "a" tag, the text and "href" prop
      - `TextType.IMAGE` shoud become a `LeafNode` with a "img" tag, empty `value`, "src" and "alt" props
+
+#### Split Delimiter:
+
+We need to make our `TextNode` functionality more powerful by converting the raw markdown string into a `list` of `TextNode` objects
+
+Example:
+
+```
+This is text with a **bolded phrase** in the middle
+```
+
+Should become:
+
+```
+[
+    TextNode("This is text with a ", TextType.TEXT),
+    TextNode("bolded phrase", TextType.BOLD),
+    TextNode(" in the middle", TextType.TEXT),
+]
+```
+
+1. Create a function `split_nodes_delimiter(old_nodes, delimiter, text_type)`
+
+2. It should take a list of "old nodes", a delimiter, and a text type.
+
+3. It should return a new list of nodes such that:
+
+   a. Any `text` type nodes in the input list are split into multiple nodes based on the syntax
+
+   Example:
+
+   ```
+   node = TextNode("this is text with a `code block` word", TextType.TEXT)
+   new_nodes = split_nodes_delimiter([node], "`", TextType.CODE)
+   ```
+
+   It returns:
+
+   ```
+   [
+       TextNode("This is text with a ", TextType.TEXT),
+       TextNode("code block", TextType.CODE),
+       TextNode(" word", TextType.TEXT)
+   ]
+   ```
+
+NOTE: THe order in which you check for delimiters matters, which simplifies implementatino
+
+4. Write many unittests - test various delimiters
