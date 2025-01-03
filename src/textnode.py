@@ -1,32 +1,30 @@
-import re
+from htmlnode import LeafNode
 from enum import Enum
-from htmlnode import HTMLNode, LeafNode
-from regex import extract_markdown_images, extract_markdown_links
+
 
 class TextType(Enum):
-    TEXT = "normal"
+    TEXT = "text"
     BOLD = "bold"
     ITALIC = "italic"
     CODE = "code"
     LINK = "link"
     IMAGE = "image"
 
+
 class TextNode:
-    def __init__(self, text, text_type: TextType, url=None):
+    def __init__(self, text, text_type, url=None):
         self.text = text
         self.text_type = text_type
-        self.url = url # the URL of the link or image, if the text is a link
+        self.url = url
 
     def __eq__(self, other):
-        # returns True if all properties of TextNode are equal to all properties of another
         return (
-                self.text == other.text
-                and self.text_type == other.text_type
-                and self.url == other.url
-                )
+            self.text_type == other.text_type
+            and self.text == other.text
+            and self.url == other.url
+        )
 
     def __repr__(self):
-        # returns a string representation of the TextNode object
         return f"TextNode({self.text}, {self.text_type.value}, {self.url})"
 
 

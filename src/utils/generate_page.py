@@ -1,7 +1,7 @@
 import os
-from utils.extract_title import extract_title
-from textnode import markdown_to_html_node
 
+from markdown_blocks import markdown_to_html_node
+from utils.extract_title import extract_title
 
 def generate_page(from_path="content/index.md", dest_path="public/index.html", template_path="template.html"):
     """
@@ -31,14 +31,15 @@ def generate_page(from_path="content/index.md", dest_path="public/index.html", t
         template = file.read()
 
     # Convert markdown to HTML and extract title
-    html_string = markdown_to_html_node(markdown).to_html()
+    node = markdown_to_html_node(markdown)
+    html = node.to_html()
     title = extract_title(markdown)
 
     # Replace placeholders in the template
-    if "{{Title}}" not in template or "{{Content}}" not in template:
+    if "{{ Title }}" not in template or "{{ Content }}" not in template:
         raise ValueError("Template is missing required placeholders: {{Title}} or {{Content}}")
 
-    new_template = template.replace("{{Title}}", title).replace("{{Content}}", html_string)
+    new_template = template.replace("{{ Title }}", title).replace("{{ Content }}", html)
 
     # Write the resulting HTML to the destination
     with open(dest_path, "w") as file:
