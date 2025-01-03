@@ -1,5 +1,6 @@
+import re
 from enum import Enum
-from htmlnode import LeafNode
+from htmlnode import HTMLNode, ParentNode, LeafNode
 from regex import extract_markdown_images, extract_markdown_links
 
 class TextType(Enum):
@@ -15,10 +16,13 @@ class Delimiters(Enum):
     ITALIC = "*"
     CODE = "`"
 
-delimiters ={
-    "bold": "**",
-    "italic": "*",
-    "code":"`"
+block_tags = {
+    quote:"<blockquote>",
+    unordered_list:"<ul>",
+    ordered_list: "<ol>",
+    code: "<code>",
+    paragraph: "<p>"
+
 }
 
 class TextNode:
@@ -165,3 +169,162 @@ def markdown_to_blocks(markdown):
     blocks = [block.strip() for block in markdown.split("\n\n") if block.strip()]
     print(blocks)
     return blocks
+
+def block_to_block_type(block):
+    # This function should return a string representing the type of block it is
+
+    ''' Block types:
+        paragraph
+        heading
+        code
+        quote
+        unordered_list
+        ordered_list
+    '''
+    block_type = "paragraph"
+
+    # Assume that all leading and trailing whitespace was already stripped
+
+    if not block.strip():
+         return block_type
+    # Headings - start with 1 to 6 # characters followed by a space and then the heading text
+    if re.match(r"^#{1,6} ", block):
+        block_type = "heading"
+
+    # Code blocks - must start with (3) backticks and end with (3) backticks
+    elif block.startswith("```") and block.endswith("```"):
+        block_type = "code"
+
+    else:
+        # Split block into lines
+        lines = block.split("\n")
+
+        # Quote block - Every line must start with ">"
+        if all(line.strip().startswith("> ") for line in lines if line.strip()):
+            block_type = "quote"
+
+        # Unordered list block - Every line must start with "- " or "* "
+        elif all((line.strip().startswith("- ") or line.strip().startswith("* ")) for line in lines if line.strip()):
+            block_type = "unordered_list"
+
+        # Ordered list block - Each line must start with a number followed by ". "
+        else:
+            is_ordered_list = True
+            expected_number = 1
+            for line in lines:
+                if line.strip():  # Skip empty lines
+                    if not line.startswith(f"{expected_number}. "):
+                        is_ordered_list = False
+                        break
+                    expected_number += 1
+
+            if is_ordered_list:
+                block_type = "ordered_list"
+
+    # Return the determined block type
+    return block_type
+
+def get_block_content(block):
+    # This function will remove the markdown delimiters and just return the text in the block
+
+    block_type = block_to_block_type(block)
+    
+    content = "" 
+    if block_type == "heading":
+        pattern = r"^#{1,6} (.+)"
+        match = re.match(pattern, block)
+        if match:
+            content = match.group(1)
+        
+    elif block_type ==  "paragraph":
+        content = block.strip()
+    
+    elif block_type == "quote":
+        content = block.lstrip("> ").strip()
+
+    elif block_type == "code":
+        content = block[3:-3].strip()
+    
+    elif block_type in ["unordered_list", "ordered_list"]:
+        lines = block.split('\n')
+        content = [line.lstrip('-*0123456789. ').strip() for line in lines]
+
+    return content
+
+    
+def markdown_block_to_html_tag(block):
+    block_type = block_to_block_type(block)
+
+    content = get_block_content(block)
+
+    html_tag = ""
+
+    if block_type == "paragraph":
+        html_tag = f"<p>{content}</p>"
+
+    elif block_type == "heading":
+        # count the number of "#" chars to determine the tag
+        pattern = r"^(#+)"
+        matches = re.findall(pattern, block[:6])
+        if matches:
+            count = len(matches[0])
+        # now we can add the count to the header "<h3>"
+        html_tag = f"<h{count}>{content}</h{count}>"
+
+    elif block_type == "quote":
+        html_tag = f"<blockquote>{content}</blockquote>"
+    
+    elif block_type == "code":
+        html_tag = f"<pre><code>{content}</code></pre>"
+
+    elif block_type == "ordered_list":
+        html_tag = "<ol>"
+        items = content
+        for item in items:
+            html_tag += f"<li>{item}</li>"
+        html_tag += "</ol>"
+
+    else:
+        html_tag = "<ul>"
+        items = content
+        for item in items:
+            html_tag += f"<li>{item}</li>"
+        html_tag += "</ul>"
+
+
+def markdown_to_html_node(markdown):
+    # Converts a full markdown doc to a single parent HTMLNode
+
+    # That parent HTMLNode should contain many child HTMLNode objects
+
+    # 1 - Split the markdown into blocks(use your function)
+    blocks = markdown_to_blocks(markdown)
+
+    if len(blocks) == 0:
+        raise Exception("Invalid markdown - could not find blocks")
+
+    # 2 - Loop over each block:
+    for i in range (len(blocks)):
+        # a. Determine the type of the block
+        block_type = block_to_block_type(blocks[i])
+
+        #NOTE: children will be all blocks[i+1:]
+        #NOTE: if len(blocks)> i then node is a parentNode
+
+        
+        # b. Based on the type of the block create a new HTMLNode with proper data
+        if i < len(blocks):
+            #NOTE: need a function to generate the html tags based on the 
+            node = ParentNode(tag=, children=blocks[i+1:], props=None)
+
+        else:
+            node = LeafNode(tag=, props=, value=)
+        
+        # c. Assign the proper child HTMLNode objects to the block node
+
+        # NOTE: prof created a shared `text_to_children(text)` function that works for all blocks
+
+    # 3 - Make all the block nodes children under a single parent HTML node (just a div) and return it 
+    
+    
+    pass
