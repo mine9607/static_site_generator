@@ -2,7 +2,7 @@ from utils.copy import copy_from_to
 
 def main():
 
-    copy_from_to("./static", "./")
+    copy_from_to("./static", "./public")
 
 
 
