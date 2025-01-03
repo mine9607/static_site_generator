@@ -3,21 +3,6 @@ import re
 def extract_markdown_images(text):
   # accepts raw markdown text and returns a list of tuples
   # each tuple should contain the alt_text and URL of any markdown images
-
-  '''Pattern between HTML and Markdown
-    Markdown: ![alt text for image](url/of/image.jpg)
-    HTML: <img src="url/of/image.jpg" alt="Description of image">
-  '''
-
-  ''' Below: First Attempt - works but not ideal
-        alt_text = re.findall(r"\[(.*?)\]")
-        url = re.findall(r"\((.*?)\)")
-
-        results = list(zip(alt_text, url))
-
-        return (alt_text,url)
-  '''
-
   pattern = r"!\[([^\[\]]*)\]\(([^\(\)]*)\)"
   matches = re.findall(pattern, text)
   return matches
