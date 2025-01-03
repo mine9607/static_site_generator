@@ -158,7 +158,6 @@ def text_to_text_nodes(text):
 
 def markdown_to_blocks(markdown):
     blocks = [block.strip() for block in markdown.split("\n\n") if block.strip()]
-    print(blocks)
     return blocks
 
 def block_to_block_type(block):
@@ -223,11 +222,12 @@ def get_block_content(block):
     block_type = block_to_block_type(block)
     
     content = "" 
-    if block_type == "heading":
+
+    if block_type.startswith("heading"):
         pattern = r"^#{1,6} (.+)"
         match = re.match(pattern, block)
         if match:
-            content = match.group(1)
+            content = match.group(1).strip()
         
     elif block_type ==  "paragraph":
         content = block.strip()
