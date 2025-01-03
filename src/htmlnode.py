@@ -21,6 +21,28 @@ class HTMLNode:
             f"\tChildren: {self.children}\n"
             f"\tProps: {self.props}"
         )
+    
+    def add_child(self, child_node):
+        self.children.append(child_node)
+
+    @staticmethod
+    def from_string(html_string, block_type, content):
+        if block_type == "paragraph":
+            return HTMLNode(tag="p", value=content)
+
+        elif block_type.startswith("heading"):
+            # Extract the heading level from the block type (e.g., "heading1", "heading2")
+            level = block_type[-1]  # Assuming block_type format is "heading1", "heading2", etc.
+            return HTMLNode(tag=f"h{level}", value=content)
+
+        elif block_type == "code":
+            code_node = HTMLNode(tag="code", value=content)
+            return HTMLNode(tag="pre", children=[code_node])
+        
+        elif block_type == "quote":
+            return HTMLNode(tag="blockquote", value=content)
+
+        return HTMLNode(tag="div", value=content)
 
 class ParentNode(HTMLNode):
     def __init__(self, tag, children, props=None):

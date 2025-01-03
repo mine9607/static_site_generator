@@ -1,6 +1,6 @@
 import re
 from enum import Enum
-from htmlnode import HTMLNode, ParentNode, LeafNode
+from htmlnode import HTMLNode, LeafNode
 from regex import extract_markdown_images, extract_markdown_links
 
 class TextType(Enum):
@@ -15,15 +15,6 @@ class Delimiters(Enum):
     BOLD = "**"
     ITALIC = "*"
     CODE = "`"
-
-block_tags = {
-    quote:"<blockquote>",
-    unordered_list:"<ul>",
-    ordered_list: "<ol>",
-    code: "<code>",
-    paragraph: "<p>"
-
-}
 
 class TextNode:
     def __init__(self, text, text_type: TextType, url=None):
@@ -188,8 +179,10 @@ def block_to_block_type(block):
     if not block.strip():
          return block_type
     # Headings - start with 1 to 6 # characters followed by a space and then the heading text
-    if re.match(r"^#{1,6} ", block):
-        block_type = "heading"
+    heading_match = re.match(r"^(#{1,6}) ", block)
+    if heading_match:
+        count = len(heading_match.group(1))
+        block_type =f"heading{count}"
 
     # Code blocks - must start with (3) backticks and end with (3) backticks
     elif block.startswith("```") and block.endswith("```"):
@@ -252,15 +245,15 @@ def get_block_content(block):
     return content
 
     
-def markdown_block_to_html_tag(block):
+def markdown_block_to_html_string(block):
     block_type = block_to_block_type(block)
 
     content = get_block_content(block)
 
-    html_tag = ""
+    html_string = ""
 
     if block_type == "paragraph":
-        html_tag = f"<p>{content}</p>"
+        html_string = f"<p>{content}</p>"
 
     elif block_type == "heading":
         # count the number of "#" chars to determine the tag
@@ -269,33 +262,36 @@ def markdown_block_to_html_tag(block):
         if matches:
             count = len(matches[0])
         # now we can add the count to the header "<h3>"
-        html_tag = f"<h{count}>{content}</h{count}>"
+        html_string = f"<h{count}>{content}</h{count}>"
 
     elif block_type == "quote":
-        html_tag = f"<blockquote>{content}</blockquote>"
+        html_string = f"<blockquote>{content}</blockquote>"
     
     elif block_type == "code":
-        html_tag = f"<pre><code>{content}</code></pre>"
+        html_string = f"<pre><code>{content}</code></pre>"
 
     elif block_type == "ordered_list":
-        html_tag = "<ol>"
+        html_string = "<ol>"
         items = content
         for item in items:
-            html_tag += f"<li>{item}</li>"
-        html_tag += "</ol>"
+            html_string += f"<li>{item}</li>"
+        html_string += "</ol>"
 
     else:
-        html_tag = "<ul>"
+        html_string = "<ul>"
         items = content
         for item in items:
-            html_tag += f"<li>{item}</li>"
-        html_tag += "</ul>"
+            html_string += f"<li>{item}</li>"
+        html_string += "</ul>"
+
+    return html_string
 
 
 def markdown_to_html_node(markdown):
     # Converts a full markdown doc to a single parent HTMLNode
 
     # That parent HTMLNode should contain many child HTMLNode objects
+    root_node = HTMLNode(tag='div')
 
     # 1 - Split the markdown into blocks(use your function)
     blocks = markdown_to_blocks(markdown)
@@ -304,27 +300,25 @@ def markdown_to_html_node(markdown):
         raise Exception("Invalid markdown - could not find blocks")
 
     # 2 - Loop over each block:
-    for i in range (len(blocks)):
+    for block in blocks:        
         # a. Determine the type of the block
-        block_type = block_to_block_type(blocks[i])
+        block_type = block_to_block_type(block)
+        content = get_block_content(block)
 
-        #NOTE: children will be all blocks[i+1:]
-        #NOTE: if len(blocks)> i then node is a parentNode
+        if block_type in ["unordered_list", "ordered_list"]:
+            parent_node = HTMLNode('ul') if block_type == "unordered_list" else HTMLNode('ol')
 
+            for list_item in content:
+                child_node = HTMLNode('li')
+                child_node.add_child(HTMLNode('text', value=list_item))
+                parent_node.add_child(child_node)
+            
+            root_node.add_child(parent_node)
         
-        # b. Based on the type of the block create a new HTMLNode with proper data
-        if i < len(blocks):
-            #NOTE: need a function to generate the html tags based on the 
-            node = ParentNode(tag=, children=blocks[i+1:], props=None)
-
         else:
-            node = LeafNode(tag=, props=, value=)
-        
-        # c. Assign the proper child HTMLNode objects to the block node
-
-        # NOTE: prof created a shared `text_to_children(text)` function that works for all blocks
-
-    # 3 - Make all the block nodes children under a single parent HTML node (just a div) and return it 
-    
-    
-    pass
+            # Handle as immediate leaf nodes like headings, paragraphs
+            
+            html_string = markdown_block_to_html_string(block)
+            node = HTMLNode.from_string(html_string, block_type, content) #CREATE THIS FUNCTION
+            root_node.add_child(node)
+    return root_node
