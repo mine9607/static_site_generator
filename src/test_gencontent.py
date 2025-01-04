@@ -1,6 +1,6 @@
 import unittest
 
-from gencontent import extract_title
+from utils.extract_title import extract_title
 
 
 class TestExtractTitle(unittest.TestCase):
